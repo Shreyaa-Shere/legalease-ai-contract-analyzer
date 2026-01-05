@@ -37,6 +37,7 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 /media
+backend/media/
 /staticfiles
 /static
 
@@ -55,4 +56,13 @@ Thumbs.db
 backend/__pycache__/
 backend/*/__pycache__/
 backend/*/migrations/__pycache__/
+
+# Test PDF files (optional - remove if you want to track sample contracts)
+*.pdf
+!frontend/public/*.pdf
+
+# Documentation files (keep README but ignore other docs if you prefer)
+# Uncomment the line below if you don't want to commit markdown docs
+# *.md
+# !README.md
 
