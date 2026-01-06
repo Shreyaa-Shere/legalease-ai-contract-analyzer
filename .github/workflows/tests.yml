@@ -1,0 +1,204 @@
+# GitHub Actions Workflow for Running Tests
+# File: .github/workflows/tests.yml
+
+"""
+BEGINNER EXPLANATION:
+---------------------
+This file tells GitHub Actions what to do automatically when you push code.
+
+Think of GitHub Actions as a robot that:
+1. Watches your GitHub repository
+2. When you push code, it automatically:
+   - Sets up a clean environment (like a fresh computer)
+   - Installs all dependencies
+   - Runs your tests
+   - Reports if tests pass or fail
+3. Shows you the results in GitHub
+
+This is called "CI/CD" (Continuous Integration/Continuous Deployment):
+- Continuous Integration = Automatically test code when pushed
+- Continuous Deployment = Automatically deploy if tests pass (we'll add this later)
+
+WHY THIS IS USEFUL:
+-------------------
+- Catch bugs before merging code
+- Ensure code works on a clean environment
+- Show other developers that your code is tested
+- Automate repetitive tasks
+"""
+
+# This is the name of the workflow (shows up in GitHub Actions tab)
+name: Run Tests
+
+# When should this workflow run?
+# BEGINNER: This tells GitHub "run this workflow when..."
+on:
+  # Run on every push to main branch
+  push:
+    branches:
+      - main
+  
+  # Run on every pull request (when someone tries to merge code)
+  pull_request:
+    branches:
+      - main
+  
+  # Also allow manual triggering (click a button to run tests)
+  workflow_dispatch:
+
+# What should the workflow do?
+jobs:
+  # BEGINNER: A "job" is a task that runs on GitHub's servers
+  # This job is called "test" - it runs our tests
+  
+  test:
+    # BEGINNER: This runs on Ubuntu Linux (GitHub's virtual machine)
+    # You could also use Windows or macOS, but Linux is free and fast
+    runs-on: ubuntu-latest
+    
+    # BEGINNER: Services are things that run alongside your code
+    # We need PostgreSQL database for our tests
+    services:
+      # Set up PostgreSQL database
+      postgres:
+        # Use PostgreSQL version 15 (can use 14, 13, etc.)
+        image: postgres:15
+        
+        # Environment variables for database connection
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_legalease_db
+        
+        # Port mapping (how to connect to database)
+        ports:
+          - 5432:5432
+        
+        # Health check - make sure database is ready before tests run
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    # BEGINNER: Steps are actions that run in sequence
+    # Each step does one thing, and they run one after another
+    steps:
+      # Step 1: Check out code
+      # BEGINNER: This downloads your code from GitHub to the virtual machine
+      - name: Checkout code
+        uses: actions/checkout@v4
+        # What this does:
+        # - Downloads your repository code
+        # - Makes it available for the next steps
+      
+      # Step 2: Set up Python
+      # BEGINNER: This installs Python on the virtual machine
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # Use Python 3.11 (or 3.10, 3.12 - whatever version you want)
+          python-version: '3.11'
+          # Cache pip packages (makes things faster)
+          cache: 'pip'
+      
+      # Step 3: Install system dependencies (for PostgreSQL)
+      # BEGINNER: Some Python packages need system libraries
+      # psycopg2 (PostgreSQL adapter) needs PostgreSQL client libraries
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev postgresql-client
+        # BEGINNER EXPLANATION:
+        # - sudo = run as administrator
+        # - apt-get = package manager for Ubuntu (installs software)
+        # - update = refresh list of available packages
+        # - install = install PostgreSQL client libraries
+      
+      # Step 4: Install Python dependencies
+      # BEGINNER: This installs all packages from requirements.txt
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        # BEGINNER EXPLANATION:
+        # - cd backend = go to backend directory
+        # - pip install = install Python packages
+        # - -r requirements.txt = install all packages listed in requirements.txt
+      
+      # Step 5: Set up environment variables
+      # BEGINNER: Your code needs environment variables (like database connection)
+      # We set them here for the test environment
+      - name: Set up environment variables
+        run: |
+          cd backend
+          # Create .env file for tests
+          cat > .env << EOF
+          SECRET_KEY=test-secret-key-for-github-actions
+          DEBUG=False
+          ALLOWED_HOSTS=localhost,127.0.0.1
+          DB_NAME=test_legalease_db
+          DB_USER=postgres
+          DB_PASSWORD=postgres
+          DB_HOST=localhost
+          DB_PORT=5432
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY || 'test-key' }}
+          EOF
+        # BEGINNER EXPLANATION:
+        # - cat > .env = create a new .env file with the content
+        # - EOF = "End of File" - marks where content ends
+        # - ${{ secrets.OPENAI_API_KEY }} = gets OpenAI key from GitHub Secrets (optional)
+        # - || 'test-key' = if secret doesn't exist, use 'test-key' (tests might not need real API)
+      
+      # Step 6: Wait for PostgreSQL to be ready
+      # BEGINNER: Make sure database is fully started before we try to use it
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL to start..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+        # BEGINNER EXPLANATION:
+        # - pg_isready = check if PostgreSQL is ready
+        # - -h localhost = connect to localhost
+        # - -p 5432 = use port 5432
+        # - -U postgres = connect as postgres user
+        # - until...do = keep checking until it's ready
+      
+      # Step 7: Run database migrations
+      # BEGINNER: Create database tables (same as running "python manage.py migrate")
+      - name: Run database migrations
+        run: |
+          cd backend
+          python manage.py migrate --noinput
+        # BEGINNER EXPLANATION:
+        # - migrate = create/update database tables
+        # - --noinput = don't ask for confirmation (automated, so no user interaction)
+      
+      # Step 8: Run tests
+      # BEGINNER: This is the main step - run all your pytest tests
+      - name: Run pytest tests
+        run: |
+          cd backend
+          pytest -v --tb=short
+        # BEGINNER EXPLANATION:
+        # - pytest = run pytest test runner
+        # - -v = verbose (show detailed output)
+        # - --tb=short = shorter error messages if tests fail
+        # This runs all tests in your tests.py file
+      
+      # Step 9 (Optional): Generate test coverage report
+      # BEGINNER: Coverage shows which parts of your code are tested
+      # Commented out for now, but you can enable it later
+      # - name: Generate coverage report
+      #   run: |
+      #     cd backend
+      #     pytest --cov=contracts --cov-report=xml
+      #
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     file: ./backend/coverage.xml
+
