@@ -1,31 +1,29 @@
 # GitHub Actions Workflow for Running Tests
 # File: .github/workflows/tests.yml
-
-"""
-BEGINNER EXPLANATION:
----------------------
-This file tells GitHub Actions what to do automatically when you push code.
-
-Think of GitHub Actions as a robot that:
-1. Watches your GitHub repository
-2. When you push code, it automatically:
-   - Sets up a clean environment (like a fresh computer)
-   - Installs all dependencies
-   - Runs your tests
-   - Reports if tests pass or fail
-3. Shows you the results in GitHub
-
-This is called "CI/CD" (Continuous Integration/Continuous Deployment):
-- Continuous Integration = Automatically test code when pushed
-- Continuous Deployment = Automatically deploy if tests pass (we'll add this later)
-
-WHY THIS IS USEFUL:
--------------------
-- Catch bugs before merging code
-- Ensure code works on a clean environment
-- Show other developers that your code is tested
-- Automate repetitive tasks
-"""
+#
+# BEGINNER EXPLANATION:
+# ---------------------
+# This file tells GitHub Actions what to do automatically when you push code.
+#
+# Think of GitHub Actions as a robot that:
+# 1. Watches your GitHub repository
+# 2. When you push code, it automatically:
+#    - Sets up a clean environment (like a fresh computer)
+#    - Installs all dependencies
+#    - Runs your tests
+#    - Reports if tests pass or fail
+# 3. Shows you the results in GitHub
+#
+# This is called "CI/CD" (Continuous Integration/Continuous Deployment):
+# - Continuous Integration = Automatically test code when pushed
+# - Continuous Deployment = Automatically deploy if tests pass (we'll add this later)
+#
+# WHY THIS IS USEFUL:
+# -------------------
+# - Catch bugs before merging code
+# - Ensure code works on a clean environment
+# - Show other developers that your code is tested
+# - Automate repetitive tasks
 
 # This is the name of the workflow (shows up in GitHub Actions tab)
 name: Run Tests
