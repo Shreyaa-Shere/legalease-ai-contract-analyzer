@@ -1,30 +1,7 @@
 """
 Tests for the Contracts App
 
-BEGINNER EXPLANATION:
----------------------
-This file contains tests for your contracts application.
-Tests check if your code works correctly.
-
-HOW TESTS WORK:
----------------
-1. Each test function starts with "test_"
-2. Tests use "assert" to check if something is true
-3. If all assertions pass, test passes
-4. If any assertion fails, test fails
-
-EXAMPLE:
---------
-def test_add_numbers():
-    result = 2 + 2
-    assert result == 4  # If this is True, test passes
-
-RUNNING TESTS:
---------------
-From the backend directory, run:
-- pytest                    # Run all tests
-- pytest contracts/tests.py # Run only these tests
-- pytest -v                 # Verbose (show more details)
+Run tests with: pytest
 """
 
 import pytest

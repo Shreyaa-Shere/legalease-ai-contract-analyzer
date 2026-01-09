@@ -1,22 +1,7 @@
 """
 Text Extraction Utility Module
 
-This module contains functions to extract text from PDF and DOCX files.
-Think of this as a "translator" that reads contract files and extracts the text content.
-
-BEGINNER EXPLANATION:
---------------------
-When you upload a contract file (PDF or DOCX), the computer needs to:
-1. Read the file
-2. Extract all the text from it
-3. Store that text in our database
-
-PDF files and DOCX files are like books - they have text, but they're stored
-in a special format. We need special "readers" (libraries) to extract the text.
-
-This module uses:
-- PyPDF2: Library to read PDF files (like Adobe Reader, but for code)
-- python-docx: Library to read DOCX files (like Microsoft Word, but for code)
+Extracts text from PDF and DOCX files using PyPDF2 and python-docx libraries.
 """
 
 import logging

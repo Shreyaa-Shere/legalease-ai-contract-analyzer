@@ -1,23 +1,8 @@
 """
 AI-Powered Contract Risk Analyzer
 
-This module uses OpenAI's GPT models to analyze extracted clauses for risks.
-It provides:
-1. Risk assessment for each clause
-2. Overall contract summary
-3. Highlighted potential issues
-
-BEGINNER EXPLANATION:
---------------------
-After we extract clauses using pattern matching, we send them to OpenAI's GPT model
-to analyze them for risks. GPT is trained on vast amounts of text and can understand
-the legal implications of clauses better than simple keyword matching.
-
-HOW IT WORKS:
-1. We send the extracted clauses to OpenAI's API
-2. GPT analyzes each clause and identifies risks
-3. GPT generates a summary explaining the risks
-4. We store the results in the database
+Uses OpenAI's GPT models to analyze extracted clauses for risks.
+Provides risk assessment, contract summary, and highlights potential issues.
 """
 
 import logging
@@ -40,14 +25,8 @@ def get_openai_client() -> Optional[Any]:
     """
     Create and return OpenAI client if API key is available.
     
-    BEGINNER EXPLANATION:
-    ---------------------
-    This function creates a "client" object that we use to talk to OpenAI's API.
-    Think of it like creating a connection to OpenAI's servers.
-    
-    RETURNS:
-    --------
-    OpenAI client object, or None if not available
+    Returns:
+        OpenAI client object, or None if not available
     """
     if not OPENAI_AVAILABLE:
         logger.error("OpenAI library not installed")
@@ -72,7 +51,7 @@ def analyze_clause_risks(extracted_clauses: List[Dict[str, any]], contract_text:
     """
     Analyze extracted clauses using OpenAI GPT for risk assessment.
     
-    BEGINNER EXPLANATION:
+    EXPLANATION:
     ---------------------
     This function sends clauses to GPT and asks it to analyze risks.
     GPT reads each clause and provides:
@@ -102,14 +81,35 @@ def analyze_clause_risks(extracted_clauses: List[Dict[str, any]], contract_text:
         # Build prompt for GPT
         prompt = build_risk_analysis_prompt(extracted_clauses, contract_text)
         
-        # Detect document type for system message
-        text_lower = contract_text[:4000].lower()
-        if any(keyword in text_lower for keyword in ['sanction letter', 'loan sanction', 'loan approval', 'home loan', 'housing finance']):
+        # Detect document type for system message - CHECK LEASE FIRST (more specific)
+        text_lower = contract_text[:6000].lower()
+        
+        # Check for lease-specific keywords FIRST (lease agreements have very specific terms)
+        has_lease_keywords = any(keyword in text_lower for keyword in [
+            'apartment lease', 'residential lease', 'apartment lease agreement', 
+            'lease agreement', 'arizona apartment lease', 'monthly rent', 
+            'premises rent', 'parking rent', 'security deposit', 'move-in', 
+            'apartment no', 'apartment #', 'landlord', 'tenant', 'resident'
+        ])
+        
+        # Check for loan-specific keywords
+        has_loan_keywords = any(keyword in text_lower for keyword in [
+            'sanction letter', 'loan sanction', 'letter of sanction', 
+            'loan approval', 'sanctioned loan', 'disbursement', 'loan amount'
+        ])
+        
+        if has_lease_keywords and not has_loan_keywords:
+            doc_type_note = "This is a LEASE AGREEMENT (apartment/residential lease). NEVER call it a 'loan sanction letter' or 'loan agreement' in your analysis. Always refer to it as a 'lease agreement'."
+        elif has_loan_keywords and not has_lease_keywords:
             doc_type_note = "This is a LOAN SANCTION LETTER or LOAN AGREEMENT. NEVER call it a 'lease agreement' in your analysis."
-        elif any(keyword in text_lower for keyword in ['lease', 'landlord', 'tenant', 'demised premises']):
-            doc_type_note = "This is a LEASE AGREEMENT. NEVER call it a 'loan sanction letter' in your analysis."
+        elif has_lease_keywords and has_loan_keywords:
+            # If both exist, check which is more prominent (lease usually wins for residential)
+            if any(keyword in text_lower for keyword in ['apartment', 'residential', 'monthly rent', 'premises rent']):
+                doc_type_note = "This is a LEASE AGREEMENT. NEVER call it a 'loan sanction letter' in your analysis."
+            else:
+                doc_type_note = "This is a LOAN SANCTION LETTER or LOAN AGREEMENT. NEVER call it a 'lease agreement' in your analysis."
         else:
-            doc_type_note = "Identify the document type correctly based on the content provided."
+            doc_type_note = "Identify the document type correctly based on the content provided. If you see 'lease', 'landlord', 'tenant', or 'rent', it's a LEASE AGREEMENT. If you see 'sanction letter' or 'loan', it's a LOAN SANCTION LETTER."
         
         # Call OpenAI API
         logger.info("Calling OpenAI API for risk analysis...")
@@ -133,8 +133,8 @@ def analyze_clause_risks(extracted_clauses: List[Dict[str, any]], contract_text:
         # Parse response
         analysis_text = response.choices[0].message.content
         
-        # Parse the structured response
-        risk_assessment = parse_risk_analysis(analysis_text, extracted_clauses)
+        # Parse the structured response (pass contract_text for document type correction)
+        risk_assessment = parse_risk_analysis(analysis_text, extracted_clauses, contract_text)
         
         logger.info("Successfully completed OpenAI risk analysis")
         return risk_assessment
@@ -158,10 +158,32 @@ def build_risk_analysis_prompt(extracted_clauses: List[Dict[str, any]], contract
     # Detect document type for better context - improved to recognize loan documents
     text_lower = contract_text[:4000].lower()
     
-    # Check for specific document type indicators first
-    if any(keyword in text_lower for keyword in ['sanction letter', 'loan sanction', 'loan approval', 'home loan', 'housing finance']):
+    # Check for specific document type indicators - CHECK LEASE FIRST (more specific)
+    # Lease agreements have very specific keywords
+    has_lease_keywords = any(keyword in text_lower for keyword in [
+        'apartment lease', 'residential lease', 'apartment lease agreement', 
+        'arizona apartment lease', 'lease agreement', 'monthly rent', 
+        'premises rent', 'parking rent', 'security deposit', 'move-in', 
+        'apartment no', 'apartment #', 'landlord', 'tenant', 'resident'
+    ])
+    
+    # Loan sanction letters have specific keywords
+    has_loan_keywords = any(keyword in text_lower for keyword in [
+        'sanction letter', 'loan sanction', 'letter of sanction', 
+        'loan approval', 'sanctioned loan', 'disbursement', 'loan amount'
+    ])
+    
+    if has_lease_keywords and not has_loan_keywords:
+        contract_type = "lease agreement"
+    elif has_loan_keywords and not has_lease_keywords:
         contract_type = "loan sanction letter or loan agreement"
-    elif any(keyword in text_lower for keyword in ['lease', 'landlord', 'tenant', 'demised premises']):
+    elif has_lease_keywords and has_loan_keywords:
+        # If both exist, lease usually takes precedence for residential/apartment contexts
+        if any(keyword in text_lower for keyword in ['apartment', 'residential', 'monthly rent', 'premises rent']):
+            contract_type = "lease agreement"
+        else:
+            contract_type = "loan sanction letter or loan agreement"
+    elif any(keyword in text_lower for keyword in ['lease', 'landlord', 'tenant']):
         contract_type = "lease agreement"
     elif any(keyword in text_lower for keyword in ['state', 'state of', 'agreement between', 'interstate', 'compact']):
         contract_type = "state agreement or intergovernmental agreement"
@@ -249,11 +271,11 @@ def build_risk_analysis_prompt(extracted_clauses: List[Dict[str, any]], contract
     return "\n".join(prompt_parts)
 
 
-def parse_risk_analysis(analysis_text: str, extracted_clauses: List[Dict[str, any]]) -> Dict[str, any]:
+def parse_risk_analysis(analysis_text: str, extracted_clauses: List[Dict[str, any]], contract_text: str = "") -> Dict[str, any]:
     """
     Parse GPT's response into structured risk assessment.
     
-    BEGINNER EXPLANATION:
+    EXPLANATION:
     ---------------------
     GPT returns text, but we need structured data (dictionaries/lists).
     This function converts GPT's text response into a structured format we can use.
@@ -271,13 +293,38 @@ def parse_risk_analysis(analysis_text: str, extracted_clauses: List[Dict[str, an
             json_str = json_str.replace('\\n', ' ')
             parsed = json.loads(json_str)
             # CRITICAL FIX: Post-process to fix document type if GPT got it wrong
-            if 'overall_summary' in parsed:
+            if 'overall_summary' in parsed and contract_text:
                 summary = parsed['overall_summary']
-                # Check if it incorrectly says "lease agreement" but should be loan-related
-                if 'lease agreement' in summary.lower() and not any(word in summary.lower() for word in ['landlord', 'tenant', 'rent', 'premises']):
-                    # It says lease but has no lease keywords - likely a mistake, replace with loan
-                    summary = re.sub(r'lease\s+agreement', 'loan sanction letter', summary, flags=re.IGNORECASE)
-                    parsed['overall_summary'] = summary
+                contract_text_lower = contract_text[:6000].lower()
+                
+                # Check for lease-specific keywords (check FIRST - more specific)
+                has_lease_terms = any(word in contract_text_lower for word in [
+                    'apartment lease', 'residential lease', 'arizona apartment lease',
+                    'lease agreement', 'landlord', 'tenant', 'resident', 
+                    'monthly rent', 'rent payment', 'premises rent', 'parking rent',
+                    'security deposit', 'apartment no', 'apartment #', 'move-in'
+                ])
+                
+                # Check for loan-specific keywords
+                has_loan_terms = any(word in contract_text_lower for word in [
+                    'sanction letter', 'loan sanction', 'letter of sanction', 
+                    'sanctioned loan', 'disbursement', 'loan amount', 'interest rate',
+                    'loan tenure', 'loan approval'
+                ])
+                
+                # Fix: If contract is clearly a lease but summary says loan, fix it
+                if has_lease_terms and not has_loan_terms:
+                    if 'loan sanction' in summary.lower() or ('loan' in summary.lower() and 'lease' not in summary.lower()):
+                        logger.info("Fixing incorrect document type: replacing 'loan sanction letter' with 'lease agreement'")
+                        summary = re.sub(r'loan\s+sanction\s+letter', 'lease agreement', summary, flags=re.IGNORECASE)
+                        summary = re.sub(r'loan\s+agreement', 'lease agreement', summary, flags=re.IGNORECASE)
+                        parsed['overall_summary'] = summary
+                # Fix: If contract is clearly a loan but summary says lease, fix it
+                elif has_loan_terms and not has_lease_terms:
+                    if 'lease agreement' in summary.lower() and 'loan' not in summary.lower():
+                        logger.info("Fixing incorrect document type: replacing 'lease agreement' with 'loan sanction letter'")
+                        summary = re.sub(r'lease\s+agreement', 'loan sanction letter', summary, flags=re.IGNORECASE)
+                        parsed['overall_summary'] = summary
             return parsed
     except Exception as e:
         logger.warning(f"Failed to parse JSON response: {str(e)}")
@@ -298,14 +345,30 @@ def parse_risk_analysis(analysis_text: str, extracted_clauses: List[Dict[str, an
     if risk_level_match:
         risk_assessment['overall_risk_level'] = risk_level_match.group(1).upper()
     
-    # CRITICAL FIX: Replace "lease agreement" with "loan sanction letter" if detected incorrectly
-    if 'overall_summary' in risk_assessment:
+    # CRITICAL FIX: Post-process to fix document type if incorrect
+    if 'overall_summary' in risk_assessment and contract_text:
         summary = risk_assessment['overall_summary']
-        # Check if it incorrectly says "lease agreement" but should be loan-related
-        if 'lease agreement' in summary.lower() and not any(word in summary.lower() for word in ['landlord', 'tenant', 'rent', 'premises']):
-            # It says lease but has no lease keywords - likely a mistake
-            summary = re.sub(r'lease\s+agreement', 'loan sanction letter', summary, flags=re.IGNORECASE)
-            risk_assessment['overall_summary'] = summary
+        contract_text_lower = contract_text[:6000].lower()
+        
+        # Check for lease-specific keywords
+        has_lease_terms = any(word in contract_text_lower for word in [
+            'apartment lease', 'residential lease', 'arizona apartment lease',
+            'lease agreement', 'landlord', 'tenant', 'resident', 
+            'monthly rent', 'premises rent', 'parking rent', 'security deposit'
+        ])
+        
+        # Check for loan-specific keywords
+        has_loan_terms = any(word in contract_text_lower for word in [
+            'sanction letter', 'loan sanction', 'letter of sanction', 
+            'sanctioned loan', 'disbursement', 'loan amount'
+        ])
+        
+        # Fix: If contract is clearly a lease but summary says loan, fix it
+        if has_lease_terms and not has_loan_terms:
+            if 'loan sanction' in summary.lower() or ('loan' in summary.lower() and 'lease' not in summary.lower()):
+                summary = re.sub(r'loan\s+sanction\s+letter', 'lease agreement', summary, flags=re.IGNORECASE)
+                summary = re.sub(r'loan\s+agreement', 'lease agreement', summary, flags=re.IGNORECASE)
+                risk_assessment['overall_summary'] = summary
     
     # Map clause types to risks
     for clause_data in extracted_clauses:
@@ -389,7 +452,7 @@ def generate_contract_summary(contract_text: str, extracted_clauses: List[Dict[s
     """
     Generate an executive summary of the contract using OpenAI.
     
-    BEGINNER EXPLANATION:
+    EXPLANATION:
     ---------------------
     Creates a brief, easy-to-read summary of the contract highlighting key points.
     Useful for users who don't want to read 20 pages of legal jargon.

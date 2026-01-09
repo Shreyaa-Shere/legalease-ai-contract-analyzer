@@ -8,7 +8,7 @@
  * - useNavigate: For navigation
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getContract, markContractAnalyzed } from '../services/api';
 
@@ -25,15 +25,13 @@ function ContractDetail() {
   const [expandedClauses, setExpandedClauses] = useState(new Set());  // Track which clause groups are expanded
   
   /**
-   * Fetch contract details when component loads
+   * Fetch contract details - memoized to avoid infinite loops
    */
-  useEffect(() => {
-    fetchContract();
-  }, [id]);  // Re-fetch if ID changes
-  
-  const fetchContract = async () => {
+  const fetchContract = useCallback(async (showLoading = false) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const data = await getContract(id);
       setContract(data);
       setError('');
@@ -43,7 +41,42 @@ function ContractDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);  // Only depend on id
+  
+  /**
+   * Fetch contract details when component loads
+   */
+  useEffect(() => {
+    fetchContract(true);  // Show loading on initial load
+  }, [fetchContract]);
+  
+  /**
+   * Poll for status updates when contract is processing
+   * BEGINNER EXPLANATION:
+   * ---------------------
+   * When a contract status is 'uploaded' or 'processing', we automatically
+   * check every 2 seconds for updates. Once it's 'analyzed' or 'error', we stop polling.
+   */
+  useEffect(() => {
+    // Only poll if contract is being processed
+    if (!contract || (contract.status !== 'uploaded' && contract.status !== 'processing')) {
+      return;
+    }
+    
+    console.log(`[Polling] Contract ${id} status: ${contract.status} - checking every 2s...`);
+    
+    // Set up polling interval (check every 2 seconds for faster updates)
+    const intervalId = setInterval(() => {
+      console.log(`[Polling] Checking status for contract ${id}...`);
+      fetchContract();
+    }, 2000);  // 2000 milliseconds = 2 seconds (faster updates)
+    
+    // Cleanup: stop polling when component unmounts or status changes
+    return () => {
+      clearInterval(intervalId);
+      console.log(`[Polling] Stopped polling for contract ${id}`);
+    };
+  }, [contract?.status, id, fetchContract]);
   
   /**
    * Handle marking contract as analyzed
@@ -245,8 +278,8 @@ function ContractDetail() {
             </div>
           )}
           
-          {/* Show message if no text extracted */}
-          {!contract.extracted_text && (
+          {/* Show message if no text extracted (only if not processing) */}
+          {!contract.extracted_text && contract.status !== 'processing' && contract.status !== 'uploaded' && (
             <div className="border-t pt-6 mt-6">
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-yellow-800 text-sm">
@@ -254,6 +287,22 @@ function ContractDetail() {
                   This may happen if the file was uploaded before text extraction was enabled, 
                   or if text extraction encountered an error.
                 </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Show partial results while processing */}
+          {(contract.status === 'processing' || contract.status === 'uploaded') && contract.extracted_text && (
+            <div className="border-t pt-6 mt-6">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-green-800 text-sm font-semibold mb-2">
+                  ✓ Text extraction complete ({contract.extracted_text.length.toLocaleString()} characters)
+                </p>
+                {contract.extracted_clauses && contract.extracted_clauses.length > 0 && (
+                  <p className="text-green-700 text-sm">
+                    ✓ Found {contract.extracted_clauses.length} clause types. AI analysis in progress...
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -445,15 +494,46 @@ function ContractDetail() {
             </div>
           )}
           
-          {/* Processing Status */}
-          {contract.status === 'processing' && (
+          {/* Processing Status - Only show if no clauses yet or no partial results */}
+          {(contract.status === 'processing' || contract.status === 'uploaded') && 
+           !(contract.extracted_clauses && contract.extracted_clauses.length > 0) && (
             <div className="border-t pt-6 mt-6">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-3">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                  <p className="text-blue-800 font-semibold">
-                    Analyzing contract... This may take a few moments.
-                  </p>
+                  <div>
+                    <p className="text-blue-800 font-semibold">
+                      {contract.status === 'uploaded' 
+                        ? 'Uploaded. Processing will start shortly...'
+                        : contract.extracted_text 
+                        ? 'Generating AI analysis... This may take 30-60 seconds.'
+                        : 'Extracting text and analyzing contract... This may take 30-60 seconds.'}
+                    </p>
+                    <p className="text-blue-600 text-sm mt-1">
+                      The page will automatically refresh when analysis is complete.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Progress indicator during AI analysis (when clauses already extracted) */}
+          {(contract.status === 'processing' || contract.status === 'uploaded') && 
+           contract.extracted_clauses && contract.extracted_clauses.length > 0 && 
+           !contract.analysis_summary && (
+            <div className="border-t pt-6 mt-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <div>
+                    <p className="text-blue-800 font-semibold">
+                      Generating AI summaries and risk analysis... Almost done!
+                    </p>
+                    <p className="text-blue-600 text-sm mt-1">
+                      You can already see the extracted clauses below. AI analysis will complete shortly.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

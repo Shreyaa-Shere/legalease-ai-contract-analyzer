@@ -210,6 +210,59 @@ CORS_ALLOWED_ORIGINS = [
 # Allow credentials (cookies, authorization headers) to be sent
 CORS_ALLOW_CREDENTIALS = True
 
+# Celery Configuration (for async task processing)
+# BEGINNER EXPLANATION:
+# ---------------------
+# Celery is a task queue that processes tasks in the background.
+# Redis is the "message broker" that Celery uses to send/receive tasks.
+#
+# HOW IT WORKS:
+# 1. Django sends a task to Redis (message broker)
+# 2. Celery worker reads the task from Redis
+# 3. Worker processes the task in the background
+# 4. Worker saves results back to database
+#
+# BENEFITS:
+# - API responds instantly (doesn't wait for processing)
+# - Can handle multiple tasks simultaneously
+# - Better user experience
+
+# Redis connection URL (message broker)
+# Default: redis://localhost:6379/0 (localhost, port 6379, database 0)
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+
+# Where to store task results (optional, we use database instead)
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+
+# Task result expiration time (results stored for 1 hour, then deleted)
+CELERY_RESULT_EXPIRES = 3600  # 1 hour in seconds
+
+# Timezone for scheduled tasks (match Django timezone)
+CELERY_TIMEZONE = TIME_ZONE
+
+# Task serialization format (JSON is safer and more portable than pickle)
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Accept content types (only JSON for security)
+CELERY_ACCEPT_CONTENT = ['json']
+
+# Task time limits
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes max per task
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # Soft limit: 25 minutes (raises exception)
+
+# Task acknowledgment (don't acknowledge until task is completed)
+# If worker crashes, task will be retried
+CELERY_TASK_ACKS_LATE = True
+
+# Worker settings
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1  # Only prefetch one task at a time (fair distribution)
+
+# Task routing (optional, for advanced usage)
+# CELERY_TASK_ROUTES = {
+#     'contracts.tasks.process_contract': {'queue': 'contracts'},
+# }
+
 # Production Security Settings (to add later when deploying)
 # These are commented out for now, but important for production:
 # 

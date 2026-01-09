@@ -26,10 +26,14 @@ env/
 ENV/
 .venv
 
-# Environment Variables
+# Environment Variables (NEVER commit these!)
 .env
 .env.local
 .env.*.local
+backend/.env
+backend/.env.local
+frontend/.env
+frontend/.env.local
 
 # Django
 *.log

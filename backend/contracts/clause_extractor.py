@@ -1,26 +1,9 @@
 """
 Clause Extraction Utility
 
-This module extracts key clauses from contract text using pattern matching and regex.
-It identifies common legal clauses like:
-- Auto-renewal clauses
-- Indemnity terms
-- Termination/early termination triggers
-- Confidentiality clauses
-- Payment terms
-- Liability limitations
-- Dispute resolution
-- Force majeure
-
-BEGINNER EXPLANATION:
---------------------
-Legal contracts contain standard clauses that repeat across different contracts.
-We use "pattern matching" (regex) to find these clauses by looking for:
-1. Specific keywords (like "auto-renew", "indemnify", "terminate")
-2. Common phrases (like "shall automatically renew")
-3. Section headers (like "SECTION 5: TERMINATION")
-
-This is like using Ctrl+F to find specific words, but automated and smarter.
+Extracts key clauses from contract text using pattern matching and regex.
+Identifies common legal clauses including auto-renewal, indemnity, termination,
+confidentiality, payment terms, liability limitations, dispute resolution, etc.
 """
 
 import re
