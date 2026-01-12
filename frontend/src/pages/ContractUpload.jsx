@@ -13,6 +13,8 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Upload, FileText, ArrowLeft, AlertCircle, X } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { uploadContract } from '../services/api';
 
 function ContractUpload() {
@@ -123,19 +125,29 @@ function ContractUpload() {
         <div className="mb-6">
           <button
             onClick={() => navigate('/contracts')}
-            className="text-blue-600 hover:text-blue-800 mb-4"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4 transition-colors"
           >
-            ← Back to Contracts
+            <ArrowLeft className="w-4 h-4" />
+            Back to Contracts
           </button>
-          <h1 className="text-3xl font-bold text-gray-800">Upload New Contract</h1>
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-100 rounded-full p-2">
+              <Upload className="w-6 h-6 text-blue-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800">Upload New Contract</h1>
+          </div>
         </div>
         
         {/* Upload Form Card */}
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Error Message */}
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              {error}
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <span className="flex-1">{error}</span>
+              <button onClick={() => setError('')} className="text-red-500 hover:text-red-700">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
           
@@ -196,9 +208,20 @@ function ContractUpload() {
               
               {/* Show selected file name */}
               {file && (
-                <p className="mt-2 text-sm text-gray-600">
-                  Selected: {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-                </p>
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
+                    <p className="text-xs text-gray-500">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFile(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               )}
               
               {/* File error message */}
@@ -216,14 +239,15 @@ function ContractUpload() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
+                <Upload className="w-5 h-5" />
                 {loading ? 'Uploading...' : 'Upload Contract'}
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/contracts')}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+                className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2.5 rounded-lg transition-colors"
               >
                 Cancel
               </button>

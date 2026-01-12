@@ -10,7 +10,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Download, CheckCircle, Clock, XCircle, AlertCircle, FileText, Check } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { getContract, markContractAnalyzed } from '../services/api';
+import { ContractDetailSkeleton } from '../components/SkeletonLoader';
 
 function ContractDetail() {
   // Get contract ID from URL
@@ -84,10 +87,10 @@ function ContractDetail() {
   const handleMarkAnalyzed = async () => {
     try {
       await markContractAnalyzed(id);
-      // Refresh contract data
+      toast.success('Contract marked as analyzed');
       fetchContract();
     } catch (err) {
-      alert('Failed to mark contract as analyzed');
+      toast.error('Failed to mark contract as analyzed');
       console.error('Error:', err);
     }
   };
@@ -106,21 +109,36 @@ function ContractDetail() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'analyzed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'processing':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'error':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'analyzed':
+        return <CheckCircle className="w-4 h-4" />;
+      case 'processing':
+        return <Clock className="w-4 h-4" />;
+      case 'error':
+        return <XCircle className="w-4 h-4" />;
+      default:
+        return <AlertCircle className="w-4 h-4" />;
     }
   };
   
   // Loading state
-  if (loading) {
+  if (loading && !contract) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Loading contract details...</div>
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-4xl mx-auto">
+          <ContractDetailSkeleton />
+        </div>
       </div>
     );
   }
@@ -183,7 +201,8 @@ function ContractDetail() {
                 
                 <div>
                   <label className="text-sm font-bold text-gray-600">File Type</label>
-                  <span className="inline-block px-2 py-1 bg-gray-200 text-gray-700 rounded text-sm">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-200 text-gray-700 rounded text-sm">
+                    <FileText className="w-3 h-3" />
                     {contract.file_type?.toUpperCase() || 'PDF'}
                   </span>
                 </div>
@@ -198,8 +217,9 @@ function ContractDetail() {
                 <div>
                   <label className="text-sm font-bold text-gray-600">Status</label>
                   <div>
-                    <span className={`inline-block px-2 py-1 rounded text-sm ${getStatusColor(contract.status)}`}>
-                      {contract.status || 'uploaded'}
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-sm border ${getStatusColor(contract.status)}`}>
+                      {getStatusIcon(contract.status)}
+                      {(contract.status || 'uploaded').charAt(0).toUpperCase() + (contract.status || 'uploaded').slice(1)}
                     </span>
                   </div>
                 </div>
@@ -244,8 +264,9 @@ function ContractDetail() {
                 href={contract.file}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
               >
+                <Download className="w-5 h-5" />
                 Download File
               </a>
             )}
@@ -254,8 +275,9 @@ function ContractDetail() {
             {contract.status !== 'analyzed' && (
               <button
                 onClick={handleMarkAnalyzed}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
               >
+                <Check className="w-5 h-5" />
                 Mark as Analyzed
               </button>
             )}
