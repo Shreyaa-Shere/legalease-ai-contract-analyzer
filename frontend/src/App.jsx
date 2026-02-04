@@ -16,6 +16,7 @@ import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
+import Register from './components/Register';
 import ContractList from './pages/ContractList';
 import ContractUpload from './pages/ContractUpload';
 import ContractDetail from './pages/ContractDetail';
@@ -55,6 +56,13 @@ function App() {
           Component: Login component
         */}
         <Route path="/login" element={<Login />} />
+        
+        {/* 
+          Register Route (Public - anyone can access)
+          URL: /register
+          Component: Register component
+        */}
+        <Route path="/register" element={<Register />} />
         
         {/* 
           Protected Routes (Require authentication)

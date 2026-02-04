@@ -1,22 +1,12 @@
 /**
  * Login Component
  * 
- * This component handles user login.
- * 
- * What is a React component?
- * - A component is a reusable piece of UI (User Interface)
- * - It's a JavaScript function that returns JSX (HTML-like syntax)
- * - Components can have state (data that changes) and props (data passed in)
- * 
- * This component:
- * 1. Shows a login form (username and password fields)
- * 2. When user submits, calls the login API
- * 3. Stores the JWT token if login succeeds
- * 4. Redirects to contracts list page
+ * Handles user authentication. Shows a login form, authenticates users via API,
+ * stores JWT tokens, and redirects to the contracts list page on success.
  */
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, FileText, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { login } from '../services/api';
@@ -117,6 +107,18 @@ function Login() {
             <LogIn className="w-5 h-5" />
             {loading ? 'Logging in...' : 'Login'}
           </button>
+          
+          <div className="mt-4 text-center">
+            <p className="text-gray-600 text-sm">
+              Don't have an account?{' '}
+              <Link 
+                to="/register" 
+                className="text-blue-600 hover:text-blue-800 font-semibold"
+              >
+                Sign up here
+              </Link>
+            </p>
+          </div>
         </form>
       </div>
     </div>

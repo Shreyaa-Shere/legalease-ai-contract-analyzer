@@ -56,6 +56,15 @@ backend/media/
 .DS_Store
 Thumbs.db
 
+# Node.js / Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+
 # Project specific
 backend/__pycache__/
 backend/*/__pycache__/

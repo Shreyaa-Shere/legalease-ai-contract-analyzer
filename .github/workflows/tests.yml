@@ -1,7 +1,6 @@
 # GitHub Actions Workflow for Running Tests
 # File: .github/workflows/tests.yml
 #
-# BEGINNER EXPLANATION:
 # ---------------------
 # This file tells GitHub Actions what to do automatically when you push code.
 #
@@ -29,7 +28,7 @@
 name: Run Tests
 
 # When should this workflow run?
-# BEGINNER: This tells GitHub "run this workflow when..."
+#  This tells GitHub "run this workflow when..."
 on:
   # Run on every push to main branch
   push:
@@ -46,15 +45,15 @@ on:
 
 # What should the workflow do?
 jobs:
-  # BEGINNER: A "job" is a task that runs on GitHub's servers
+  #  A "job" is a task that runs on GitHub's servers
   # This job is called "test" - it runs our tests
   
   test:
-    # BEGINNER: This runs on Ubuntu Linux (GitHub's virtual machine)
+    #  This runs on Ubuntu Linux (GitHub's virtual machine)
     # You could also use Windows or macOS, but Linux is free and fast
     runs-on: ubuntu-latest
     
-    # BEGINNER: Services are things that run alongside your code
+    #  Services are things that run alongside your code
     # We need PostgreSQL database for our tests
     services:
       # Set up PostgreSQL database
@@ -79,11 +78,11 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     
-    # BEGINNER: Steps are actions that run in sequence
+    #  Steps are actions that run in sequence
     # Each step does one thing, and they run one after another
     steps:
       # Step 1: Check out code
-      # BEGINNER: This downloads your code from GitHub to the virtual machine
+      #  This downloads your code from GitHub to the virtual machine
       - name: Checkout code
         uses: actions/checkout@v4
         # What this does:
@@ -91,7 +90,7 @@ jobs:
         # - Makes it available for the next steps
       
       # Step 2: Set up Python
-      # BEGINNER: This installs Python on the virtual machine
+      #  This installs Python on the virtual machine
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -101,32 +100,32 @@ jobs:
           cache: 'pip'
       
       # Step 3: Install system dependencies (for PostgreSQL)
-      # BEGINNER: Some Python packages need system libraries
+      #  Some Python packages need system libraries
       # psycopg2 (PostgreSQL adapter) needs PostgreSQL client libraries
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
           sudo apt-get install -y libpq-dev postgresql-client
-        # BEGINNER EXPLANATION:
+        #  EXPLANATION:
         # - sudo = run as administrator
         # - apt-get = package manager for Ubuntu (installs software)
         # - update = refresh list of available packages
         # - install = install PostgreSQL client libraries
       
       # Step 4: Install Python dependencies
-      # BEGINNER: This installs all packages from requirements.txt
+      #  This installs all packages from requirements.txt
       - name: Install dependencies
         run: |
           cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-        # BEGINNER EXPLANATION:
+        #  EXPLANATION:
         # - cd backend = go to backend directory
         # - pip install = install Python packages
         # - -r requirements.txt = install all packages listed in requirements.txt
       
       # Step 5: Set up environment variables
-      # BEGINNER: Your code needs environment variables (like database connection)
+      #  Your code needs environment variables (like database connection)
       # We set them here for the test environment
       - name: Set up environment variables
         run: |
@@ -143,14 +142,14 @@ jobs:
           DB_PORT=5432
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY || 'test-key' }}
           EOF
-        # BEGINNER EXPLANATION:
+        #  EXPLANATION:
         # - cat > .env = create a new .env file with the content
         # - EOF = "End of File" - marks where content ends
         # - ${{ secrets.OPENAI_API_KEY }} = gets OpenAI key from GitHub Secrets (optional)
         # - || 'test-key' = if secret doesn't exist, use 'test-key' (tests might not need real API)
       
       # Step 6: Wait for PostgreSQL to be ready
-      # BEGINNER: Make sure database is fully started before we try to use it
+      #  Make sure database is fully started before we try to use it
       - name: Wait for PostgreSQL
         run: |
           until pg_isready -h localhost -p 5432 -U postgres; do
@@ -158,7 +157,7 @@ jobs:
             sleep 2
           done
           echo "PostgreSQL is ready!"
-        # BEGINNER EXPLANATION:
+        #  EXPLANATION:
         # - pg_isready = check if PostgreSQL is ready
         # - -h localhost = connect to localhost
         # - -p 5432 = use port 5432
@@ -166,29 +165,29 @@ jobs:
         # - until...do = keep checking until it's ready
       
       # Step 7: Run database migrations
-      # BEGINNER: Create database tables (same as running "python manage.py migrate")
+      #  Create database tables (same as running "python manage.py migrate")
       - name: Run database migrations
         run: |
           cd backend
           python manage.py migrate --noinput
-        # BEGINNER EXPLANATION:
+        #  EXPLANATION:
         # - migrate = create/update database tables
         # - --noinput = don't ask for confirmation (automated, so no user interaction)
       
       # Step 8: Run tests
-      # BEGINNER: This is the main step - run all your pytest tests
+      #  This is the main step - run all your pytest tests
       - name: Run pytest tests
         run: |
           cd backend
           pytest -v --tb=short
-        # BEGINNER EXPLANATION:
+        #  EXPLANATION:
         # - pytest = run pytest test runner
         # - -v = verbose (show detailed output)
         # - --tb=short = shorter error messages if tests fail
         # This runs all tests in your tests.py file
       
       # Step 9 (Optional): Generate test coverage report
-      # BEGINNER: Coverage shows which parts of your code are tested
+      #  Coverage shows which parts of your code are tested
       # Commented out for now, but you can enable it later
       # - name: Generate coverage report
       #   run: |

@@ -51,15 +51,6 @@ def analyze_clause_risks(extracted_clauses: List[Dict[str, any]], contract_text:
     """
     Analyze extracted clauses using OpenAI GPT for risk assessment.
     
-    EXPLANATION:
-    ---------------------
-    This function sends clauses to GPT and asks it to analyze risks.
-    GPT reads each clause and provides:
-    - Risk level (low/medium/high/critical)
-    - Explanation of why it's risky
-    - What to watch out for
-    - Recommendations
-    
     PARAMETERS:
     -----------
     extracted_clauses: List of extracted clauses from clause_extractor
@@ -149,11 +140,6 @@ def build_risk_analysis_prompt(extracted_clauses: List[Dict[str, any]], contract
     """
     Build the prompt to send to OpenAI for risk analysis.
     Improved to be more specific for lease agreements and contract types.
-    
-    BEGINNER EXPLANATION:
-    ---------------------
-    A "prompt" is the instructions we give to GPT. We need to be clear and specific
-    about what we want GPT to do. This function creates that prompt.
     """
     # Detect document type for better context - improved to recognize loan documents
     text_lower = contract_text[:4000].lower()
@@ -275,10 +261,7 @@ def parse_risk_analysis(analysis_text: str, extracted_clauses: List[Dict[str, an
     """
     Parse GPT's response into structured risk assessment.
     
-    EXPLANATION:
-    ---------------------
-    GPT returns text, but we need structured data (dictionaries/lists).
-    This function converts GPT's text response into a structured format we can use.
+    Converts GPT's text response into structured data format.
     """
     import json
     import re
@@ -388,7 +371,7 @@ def create_basic_risk_assessment(extracted_clauses: List[Dict[str, any]]) -> Dic
     """
     Create a basic risk assessment without OpenAI (fallback).
     
-    BEGINNER EXPLANATION:
+    
     ---------------------
     If OpenAI is unavailable or fails, we still want to show some risk assessment.
     This function creates a basic assessment based on clause types and counts.
@@ -564,7 +547,7 @@ def summarize_clause_text(clause_text: str, clause_type: str, article_num: Optio
     This converts raw clause text into a readable, complete sentence that explains
     what the clause says, so users don't see truncated text like "Base Rent: As..."
     
-    BEGINNER EXPLANATION:
+    
     ---------------------
     Instead of showing raw text that gets cut off, we ask GPT to create a clear,
     complete sentence that explains what the clause means.

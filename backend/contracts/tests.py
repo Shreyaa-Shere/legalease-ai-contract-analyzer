@@ -19,26 +19,11 @@ from contracts.models import Contract
 class TestContractModel:
     """
     Tests for the Contract model.
-    
-    BEGINNER EXPLANATION:
-    ---------------------
-    This class groups related tests together.
-    All tests inside check if the Contract model works correctly.
     """
     
     def test_contract_creation(self, test_user, db):
         """
         Test that we can create a contract.
-        
-        BEGINNER EXPLANATION:
-        ---------------------
-        This test checks if we can create a Contract object in the database.
-        It uses the test_user fixture (automatically provided by pytest).
-        
-        STEPS:
-        1. Create a simple file object (for testing)
-        2. Create a Contract with that file
-        3. Check that the contract was saved correctly
         """
         # Create a simple text file for testing
         # SimpleUploadedFile creates a fake file without actually saving to disk
@@ -74,11 +59,6 @@ class TestContractModel:
     def test_contract_string_representation(self, test_user, db):
         """
         Test the __str__ method of Contract model.
-        
-        BEGINNER EXPLANATION:
-        ---------------------
-        The __str__ method defines how a Contract appears when printed.
-        This test checks if it shows the title correctly.
         """
         test_file = SimpleUploadedFile("test.pdf", b"content", content_type="application/pdf")
         
@@ -97,11 +77,6 @@ class TestContractModel:
     def test_contract_default_status(self, test_user, db):
         """
         Test that contract defaults to 'uploaded' status.
-        
-        BEGINNER EXPLANATION:
-        ---------------------
-        If we don't specify a status when creating a contract,
-        it should default to 'uploaded'. This test checks that.
         """
         test_file = SimpleUploadedFile("test.pdf", b"content", content_type="application/pdf")
         
@@ -120,11 +95,6 @@ class TestContractModel:
     def test_contract_user_relationship(self, test_user, db):
         """
         Test that contract is linked to the correct user.
-        
-        BEGINNER EXPLANATION:
-        ---------------------
-        Each contract should belong to a user. This test checks
-        that the relationship works correctly.
         """
         test_file = SimpleUploadedFile("test.pdf", b"content", content_type="application/pdf")
         
@@ -148,7 +118,7 @@ class TestContractModel:
         """
         Test that timestamps are set correctly.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         Contracts have uploaded_at, updated_at, and analyzed_at timestamps.
         This test checks that they work correctly.
@@ -185,7 +155,7 @@ class TestContractModel:
         """
         Test that JSON fields (extracted_clauses, risk_assessment) work correctly.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         JSON fields can store structured data (lists, dictionaries).
         This test checks if we can save and retrieve JSON data.
@@ -236,7 +206,7 @@ class TestContractModel:
         """
         Test the file_size_mb property.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         The Contract model has a property that converts file size
         from bytes to megabytes. This test checks if it works correctly.
@@ -279,7 +249,7 @@ class TestContractAPI:
     """
     Tests for the Contract API endpoints.
     
-    BEGINNER EXPLANATION:
+    
     ---------------------
     These tests check if your API endpoints work correctly.
     They make HTTP requests (GET, POST, PUT, DELETE) and check responses.
@@ -289,7 +259,7 @@ class TestContractAPI:
         """
         Test that listing contracts requires authentication.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         This test checks that unauthenticated users cannot access
         the contracts list. They should get a 401 (Unauthorized) error.
@@ -304,7 +274,7 @@ class TestContractAPI:
         """
         Test that authenticated users can list their contracts.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         When a user is logged in, they should be able to see
         their own contracts.
@@ -339,7 +309,7 @@ class TestContractAPI:
         """
         Test that users can only see their own contracts, not others'.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         This is an important security test. User 1 should not be able
         to see contracts uploaded by User 2.
@@ -381,7 +351,7 @@ class TestContractAPI:
         """
         Test creating a contract via API.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         This test checks if we can create a new contract by making
         a POST request to the API.
@@ -421,7 +391,7 @@ class TestContractAPI:
         """
         Test retrieving a single contract via API.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         This test checks if we can get details of a specific contract
         by making a GET request to /api/contracts/{id}/
@@ -450,7 +420,7 @@ class TestContractAPI:
         """
         Test deleting a contract via API.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         This test checks if we can delete a contract by making
         a DELETE request.
@@ -480,7 +450,7 @@ class TestContractAPI:
         """
         Test that users cannot delete other users' contracts.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         This is a security test. User 1 should not be able to delete
         contracts uploaded by User 2.
@@ -514,7 +484,7 @@ class TestAuthentication:
     """
     Tests for JWT authentication.
     
-    BEGINNER EXPLANATION:
+    
     ---------------------
     These tests check if login/logout and token generation work correctly.
     """
@@ -523,7 +493,7 @@ class TestAuthentication:
         """
         Test logging in with valid username and password.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         This test checks if users can get a JWT token by providing
         correct username and password.
@@ -551,7 +521,7 @@ class TestAuthentication:
         """
         Test that login fails with wrong password.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         Users should not be able to login with wrong password.
         """
@@ -568,7 +538,7 @@ class TestAuthentication:
         """
         Test that we can access protected endpoints using JWT token.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         After getting a token from login, we should be able to use it
         to access protected API endpoints.
@@ -597,7 +567,7 @@ class TestUtilityFunctions:
     """
     Tests for utility functions (text extraction, etc.).
     
-    BEGINNER EXPLANATION:
+    
     ---------------------
     These tests check if helper functions work correctly.
     """
@@ -606,7 +576,7 @@ class TestUtilityFunctions:
         """
         Test extracting text from a simple PDF file.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         This test checks if the text extraction function can read
         text from PDF files. We create a simple test file and check
@@ -629,7 +599,7 @@ class TestUtilityFunctions:
         """
         Test extracting text from a DOCX file.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         Similar to PDF test, but for DOCX files.
         """
@@ -647,7 +617,7 @@ class TestClauseExtraction:
     """
     Tests for clause extraction logic.
     
-    BEGINNER EXPLANATION:
+    
     ---------------------
     These tests check if the clause extraction functions correctly
     identify important clauses in contract text.
@@ -657,7 +627,7 @@ class TestClauseExtraction:
         """
         Test that payment clauses are extracted correctly.
         
-        BEGINNER EXPLANATION:
+        
         ---------------------
         Given contract text containing payment information,
         the extractor should identify it as a payment clause.

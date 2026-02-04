@@ -1,10 +1,10 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
 from .models import Contract
-from .serializers import ContractSerializer, ContractListSerializer
+from .serializers import ContractSerializer, ContractListSerializer, UserRegistrationSerializer
 
 
 class ContractViewSet(viewsets.ModelViewSet):
@@ -56,4 +56,50 @@ class ContractViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(contract)
         return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Allow anyone to register
+def register_user(request):
+    """
+    User registration endpoint.
+    
+    POST /api/register/
+    Body: {
+        "username": "newuser",
+        "email": "user@example.com",
+        "password": "securepassword123",
+        "password_confirm": "securepassword123",
+        "first_name": "John",  # optional
+        "last_name": "Doe"     # optional
+    }
+    
+    Returns: {
+        "message": "User registered successfully",
+        "user": {
+            "id": 1,
+            "username": "newuser",
+            "email": "user@example.com"
+        }
+    }
+    """
+    serializer = UserRegistrationSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        user = serializer.save()
+        
+        # Return success response (don't include password)
+        return Response({
+            'message': 'User registered successfully',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            }
+        }, status=status.HTTP_201_CREATED)
+    
+    # Return validation errors
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

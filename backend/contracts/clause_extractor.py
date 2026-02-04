@@ -414,11 +414,6 @@ def extract_clause_context(text: str, pattern: str, context_chars: int = 500) ->
     Extract clauses matching a pattern with surrounding context.
     Improved to extract complete sentences/paragraphs around matches.
     
-    BEGINNER EXPLANATION:
-    ---------------------
-    When we find a clause keyword (like "auto-renewal"), we don't just want
-    that one word - we want the entire sentence or paragraph that explains it.
-    
     IMPROVEMENTS:
     - Tries to extract complete sentences
     - Looks for article headers to provide better context
@@ -618,16 +613,6 @@ def extract_clause_context(text: str, pattern: str, context_chars: int = 500) ->
 def extract_all_clauses(contract_text: str) -> List[Dict[str, any]]:
     """
     Extract all key clauses from contract text.
-    
-    BEGINNER EXPLANATION:
-    ---------------------
-    This is the main function that finds all important clauses in a contract.
-    
-    HOW IT WORKS:
-    1. Goes through each clause type (auto-renewal, indemnity, etc.)
-    2. For each type, searches for matching keywords
-    3. Extracts the clause text with context
-    4. Returns a list of all found clauses
     
     PARAMETERS:
     -----------
@@ -1030,10 +1015,7 @@ def get_clause_summary(extracted_clauses: List[Dict[str, any]]) -> str:
     """
     Generate a simple text summary of extracted clauses.
     
-    BEGINNER EXPLANATION:
-    ---------------------
     Converts the structured clause data into a readable text summary.
-    This is useful for displaying in the UI or for AI analysis.
     """
     if not extracted_clauses:
         return "No key clauses detected in this contract."

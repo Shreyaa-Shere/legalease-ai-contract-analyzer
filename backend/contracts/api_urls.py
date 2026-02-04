@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
-from .api_views import ContractViewSet
+from .api_views import ContractViewSet, register_user
 
 # Create a router for ViewSets
 router = DefaultRouter()
@@ -17,6 +17,10 @@ urlpatterns = [
     #               /api/contracts/{id}/ (retrieve, update, delete)
     #               /api/contracts/{id}/mark_analyzed/ (custom action)
     path('', include(router.urls)),
+    
+    # User Registration endpoint
+    # POST /api/register/ - Register a new user account
+    path('register/', register_user, name='register'),
     
     # JWT Authentication endpoints
     # POST /api/token/ - Get access & refresh tokens (login)

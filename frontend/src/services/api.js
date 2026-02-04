@@ -2,12 +2,8 @@
  * API Service Layer
  * 
  * This file handles all communication with the Django REST API backend.
- * 
- * What is a service layer?
- * - Centralized place for all API calls
- * - Makes it easy to change API endpoints in one place
- * - Handles authentication tokens automatically
- * - Provides reusable functions for components
+ * Centralized place for all API calls, handles authentication tokens automatically,
+ * and provides reusable functions for components.
  */
 
 import axios from 'axios';
@@ -87,6 +83,31 @@ api.interceptors.response.use(
 // ============================================
 // AUTHENTICATION API FUNCTIONS
 // ============================================
+
+/**
+ * Register function
+ * 
+ * Creates a new user account
+ * 
+ * @param {object} userData - User registration data
+ * @param {string} userData.username - Username
+ * @param {string} userData.email - Email address
+ * @param {string} userData.password - Password
+ * @param {string} userData.password_confirm - Password confirmation
+ * @param {string} userData.first_name - First name (optional)
+ * @param {string} userData.last_name - Last name (optional)
+ * @returns {Promise} - Contains user information
+ */
+export const register = async (userData) => {
+  try {
+    // Send POST request to /api/register/
+    const response = await api.post('/register/', userData);
+    return response.data;  // Returns: { message, user: {...} }
+  } catch (error) {
+    // If registration fails, throw error so component can handle it
+    throw error;
+  }
+};
 
 /**
  * Login function

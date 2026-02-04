@@ -26,24 +26,9 @@ logger = logging.getLogger(__name__)
 
 def extract_text_from_pdf(file_path):
     """
-    Extract text from a PDF file.
+    Extract text from a PDF file using PyPDF2.
     
-    BEGINNER EXPLANATION:
-    ---------------------
-    PDF (Portable Document Format) files are like digital books.
-    They contain text, images, and formatting, but the text is "embedded" 
-    in a special way that's hard to read directly.
-    
-    PyPDF2 is a library that knows how to "read" PDFs and extract the text.
-    
-    HOW IT WORKS:
-    1. Open the PDF file
-    2. Read each page one by one
-    3. Extract text from each page
-    4. Combine all pages into one big text string
-    5. Return the text
-    
-    PARAMETERS:
+    Parameters:
     -----------
     file_path: str or Path
         The full path to the PDF file on the server's disk
@@ -109,19 +94,7 @@ def extract_text_from_pdf(file_path):
 
 def extract_text_from_docx(file_path):
     """
-    Extract text from a DOCX (Word) file.
-    
-    BEGINNER EXPLANATION:
-    ---------------------
-    DOCX is Microsoft Word's file format. Like PDFs, it stores text in a special way.
-    
-    python-docx is a library that can "read" DOCX files and extract the text.
-    
-    HOW IT WORKS:
-    1. Open the DOCX file
-    2. Read all paragraphs (paragraphs are like paragraphs in Word)
-    3. Extract text from each paragraph
-    4. Combine all paragraphs into one text string
+    Extract text from a DOCX (Word) file using python-docx.
     5. Return the text
     
     PARAMETERS:
@@ -180,18 +153,7 @@ def extract_text_from_docx(file_path):
 def extract_text_from_file(file_path, file_type):
     """
     Main function to extract text from any supported file type.
-    
-    BEGINNER EXPLANATION:
-    ---------------------
-    This is a "smart" function that automatically chooses the right extraction method
-    based on the file type. It's like having a smart assistant who knows:
-    - "Oh, this is a PDF? Use the PDF reader!"
-    - "Oh, this is a DOCX? Use the DOCX reader!"
-    
-    HOW IT WORKS:
-    1. Check the file type (PDF or DOCX)
-    2. Call the appropriate extraction function
-    3. Return the extracted text
+    Automatically chooses the appropriate extraction method based on file type.
     
     PARAMETERS:
     -----------

@@ -211,22 +211,6 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 # Celery Configuration (for async task processing)
-# BEGINNER EXPLANATION:
-# ---------------------
-# Celery is a task queue that processes tasks in the background.
-# Redis is the "message broker" that Celery uses to send/receive tasks.
-#
-# HOW IT WORKS:
-# 1. Django sends a task to Redis (message broker)
-# 2. Celery worker reads the task from Redis
-# 3. Worker processes the task in the background
-# 4. Worker saves results back to database
-#
-# BENEFITS:
-# - API responds instantly (doesn't wait for processing)
-# - Can handle multiple tasks simultaneously
-# - Better user experience
-
 # Redis connection URL (message broker)
 # Default: redis://localhost:6379/0 (localhost, port 6379, database 0)
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')

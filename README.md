@@ -4,6 +4,7 @@ An intelligent contract analysis platform that uses AI to extract, analyze, and 
 
 ## Features
 
+- **User Authentication**: Secure JWT-based authentication with user registration and login
 - **Automated Text Extraction**: Extracts text from PDF and DOCX files
 - **Intelligent Clause Detection**: Identifies key legal clauses using pattern matching
 - **AI-Powered Risk Analysis**: Uses OpenAI GPT to assess contract risks and provide summaries
@@ -123,6 +124,12 @@ npm run dev
 
 The application will be available at `http://localhost:5173`
 
+**Note:** Make sure all services are running:
+- Redis (for Celery message broker)
+- Celery Worker (for background task processing)
+- Django Server (backend API)
+- Frontend Dev Server (React app)
+
 ## Configuration
 
 ### Environment Variables
@@ -146,12 +153,45 @@ CELERY_BROKER_URL=redis://localhost:6379/0
 CELERY_RESULT_BACKEND=redis://localhost:6379/0
 ```
 
+## Usage
+
+### First Time Setup
+
+1. **Create a superuser account** (for Django admin):
+   ```bash
+   cd backend
+   python manage.py createsuperuser
+   ```
+
+2. **Register a new user** via the frontend:
+   - Navigate to `http://localhost:5173/register`
+   - Fill in the registration form
+   - After registration, you'll be redirected to login
+
+3. **Login** to access the application:
+   - Navigate to `http://localhost:5173/login`
+   - Use your registered credentials
+
+### Using the Application
+
+1. **Upload Contracts**: Click "Upload Contract" to add a new contract (PDF or DOCX)
+2. **View Contracts**: Browse your uploaded contracts on the main page
+3. **View Analysis**: Click on any contract to see detailed AI-powered analysis
+4. **Manage Contracts**: Update or delete contracts as needed
+
 ## Testing
 
 Run tests with:
 ```bash
 cd backend
 pytest
+```
+
+For more detailed test output:
+```bash
+cd backend
+pytest -v  # Verbose output
+pytest --cov  # With coverage report
 ```
 
 ## Project Structure
@@ -161,32 +201,88 @@ legalease-ai-contract-analyzer/
 ├── backend/
 │   ├── contracts/          # Main app
 │   │   ├── models.py       # Database models
-│   │   ├── serializers.py  # API serializers
-│   │   ├── api_views.py    # API endpoints
+│   │   ├── serializers.py  # API serializers (includes UserRegistrationSerializer)
+│   │   ├── api_views.py    # API endpoints (includes registration)
+│   │   ├── api_urls.py     # API URL routing
 │   │   ├── tasks.py        # Celery tasks
 │   │   ├── clause_extractor.py  # Clause extraction logic
 │   │   ├── ai_analyzer.py  # OpenAI integration
 │   │   └── utils.py        # Text extraction utilities
 │   ├── legalease/          # Django project config
-│   └── manage.py
+│   │   ├── settings.py     # Django settings
+│   │   └── urls.py         # Main URL configuration
+│   ├── manage.py
+│   ├── requirements.txt    # Python dependencies
+│   └── .env                # Environment variables (create from env.example)
 ├── frontend/
 │   ├── src/
-│   │   ├── pages/          # React components
+│   │   ├── components/     # Reusable React components
+│   │   │   ├── Login.jsx   # Login page
+│   │   │   ├── Register.jsx  # Registration page
+│   │   │   ├── Layout.jsx  # Main layout wrapper
+│   │   │   └── ProtectedRoute.jsx  # Auth guard
+│   │   ├── pages/          # Page components
+│   │   │   ├── ContractList.jsx
+│   │   │   ├── ContractUpload.jsx
+│   │   │   └── ContractDetail.jsx
 │   │   ├── services/       # API services
-│   │   └── App.jsx
+│   │   │   └── api.js      # API client with authentication
+│   │   ├── utils/          # Utility functions
+│   │   │   └── auth.js     # Authentication helpers
+│   │   └── App.jsx         # Main app component with routing
 │   └── package.json
 └── README.md
 ```
 
 ## API Endpoints
 
-- `POST /api/contracts/` - Upload contract
-- `GET /api/contracts/` - List contracts
-- `GET /api/contracts/{id}/` - Get contract details
-- `PUT /api/contracts/{id}/` - Update contract
-- `DELETE /api/contracts/{id}/` - Delete contract
+### Authentication
+- `POST /api/register/` - Register a new user account
 - `POST /api/token/` - Login (get JWT token)
 - `POST /api/token/refresh/` - Refresh JWT token
+- `POST /api/token/verify/` - Verify JWT token validity
+
+### Contracts
+- `POST /api/contracts/` - Upload contract (requires authentication)
+- `GET /api/contracts/` - List contracts (requires authentication)
+- `GET /api/contracts/{id}/` - Get contract details (requires authentication)
+- `PUT /api/contracts/{id}/` - Update contract (requires authentication)
+- `DELETE /api/contracts/{id}/` - Delete contract (requires authentication)
+- `POST /api/contracts/{id}/mark_analyzed/` - Mark contract as analyzed (requires authentication)
+
+## Troubleshooting
+
+### Common Issues
+
+**Redis Connection Error:**
+- Make sure Redis is running before starting Celery
+- Check Redis is accessible at `localhost:6379`
+- On Windows, ensure Redis server is started from the correct directory
+
+**Celery Worker Not Processing Tasks:**
+- Verify Redis is running
+- Check Celery worker logs for errors
+- Ensure Django server is running (Celery needs database access)
+
+**Database Connection Error:**
+- Verify PostgreSQL is running
+- Check database credentials in `.env` file
+- Ensure database `legalease_db` exists (or run migrations to create it)
+
+**Frontend Can't Connect to Backend:**
+- Ensure Django server is running on `http://127.0.0.1:8000`
+- Check CORS settings in `backend/legalease/settings.py`
+- Verify API_BASE_URL in `frontend/src/services/api.js`
+
+**Module Not Found Errors:**
+- Make sure virtual environment is activated
+- Run `pip install -r requirements.txt` again
+- For frontend: run `npm install` again
+
+**Registration/Login Issues:**
+- Ensure database migrations are applied: `python manage.py migrate`
+- Check that PostgreSQL is running and accessible
+- Verify environment variables are set correctly in `.env`
 
 ## License
 

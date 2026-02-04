@@ -17,6 +17,7 @@ frontend/
 ├── src/
 │   ├── components/          # Reusable UI components
 │   │   ├── Login.jsx       # Login page component
+│   │   ├── Register.jsx    # Registration page component
 │   │   ├── Layout.jsx      # Navigation layout wrapper
 │   │   └── ProtectedRoute.jsx  # Authentication guard
 │   ├── pages/              # Page components
@@ -55,6 +56,7 @@ frontend/
 
 - `/` - Redirects to `/login` or `/contracts` based on authentication
 - `/login` - Login page
+- `/register` - User registration page
 - `/contracts` - List all contracts (protected)
 - `/contracts/upload` - Upload new contract (protected)
 - `/contracts/:id` - View contract details (protected)
@@ -62,6 +64,7 @@ frontend/
 ## Key Features
 
 1. **Authentication**
+   - User registration with email and password
    - JWT token-based authentication
    - Tokens stored in localStorage
    - Automatic token refresh

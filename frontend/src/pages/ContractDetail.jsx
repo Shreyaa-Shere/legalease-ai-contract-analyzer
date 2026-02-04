@@ -54,11 +54,8 @@ function ContractDetail() {
   }, [fetchContract]);
   
   /**
-   * Poll for status updates when contract is processing
-   * BEGINNER EXPLANATION:
-   * ---------------------
-   * When a contract status is 'uploaded' or 'processing', we automatically
-   * check every 2 seconds for updates. Once it's 'analyzed' or 'error', we stop polling.
+   * Poll for status updates when contract is processing.
+   * Checks every 2 seconds for updates when status is 'uploaded' or 'processing'.
    */
   useEffect(() => {
     // Only poll if contract is being processed

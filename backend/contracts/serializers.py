@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from .models import Contract
 from .tasks import process_contract_task  # Import Celery task for async processing
 import logging
@@ -124,4 +126,60 @@ class ContractListSerializer(serializers.ModelSerializer):
             'analyzed_at',
             'uploaded_by_username',
         ]
+
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user registration.
+    Validates password and creates a new user account.
+    """
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={'input_type': 'password'}
+    )
+    password_confirm = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
+    
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'password_confirm', 'first_name', 'last_name']
+        extra_kwargs = {
+            'email': {'required': True},
+            'first_name': {'required': False},
+            'last_name': {'required': False},
+        }
+    
+    def validate(self, attrs):
+        """
+        Validate that password and password_confirm match.
+        """
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError({
+                'password': 'Password fields do not match.',
+                'password_confirm': 'Password fields do not match.'
+            })
+        return attrs
+    
+    def create(self, validated_data):
+        """
+        Create a new user account.
+        """
+        # Remove password_confirm from validated_data (not needed for user creation)
+        validated_data.pop('password_confirm')
+        
+        # Create user with hashed password
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data.get('email', ''),
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
+        )
+        
+        return user
 
